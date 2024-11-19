@@ -19,13 +19,17 @@ set(SOURCES
 )
 
 set(HEADERS
-    headers/mainwindow.h
-    headers/gamelogic.h
-    headers/stack.h
+    include/mainwindow.h
+    include/gamelogic.h
+    include/stack.h
 )
 
 set(UI_FILES
     ui/mainwindow.ui
+)
+
+set(CMAKE_AUTOUIC_SEARCH_PATHS
+    ui/
 )
 
 # if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -55,7 +59,7 @@ set(UI_FILES
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES})
 
-target_include_directories(${PROJECT_NAME} PRIVATE headers)
+target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 target_link_libraries(target_9 PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
