@@ -18,7 +18,7 @@ public:
     ~MainWindow();
 
 private slots:
-    void showMessageBox();
+    void showWin();
     void updateDifficultyLabel(int value);
 
 private:

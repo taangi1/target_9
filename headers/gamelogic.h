@@ -5,6 +5,8 @@ class GameLogic
 {
 public:
     GameLogic();
+private:
+
 };
 
 #endif // GAMELOGIC_H
