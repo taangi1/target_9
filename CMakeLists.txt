@@ -32,36 +32,30 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS
     ui/
 )
 
-# if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-#     qt_add_executable(target_9
-#         MANUAL_FINALIZATION
-#         ${PROJECT_SOURCES}
-#         headers/gamelogic.h
-#         src/gamelogic.cpp
-#     )
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET target_9 APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
-# else()
-#     if(ANDROID)
-#         add_library(target_9 SHARED
-#             ${PROJECT_SOURCES}
-#         )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-#     else()
-#         add_executable(target_9
-#             ${PROJECT_SOURCES}
-#         )
-#     endif()
-# endif()
+# Main app executable
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 target_link_libraries(target_9 PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+
+# Testing executable
+
+enable_testing()
+
+set(TEST_SOURCES
+    tests/test_gamelogic_makeMove.cpp
+    src/gamelogic.cpp
+)
+
+add_executable(GameLogicTestRunner ${TEST_SOURCES})
+
+target_include_directories(GameLogicTestRunner PRIVATE include)
+
+target_link_libraries(GameLogicTestRunner gtest gtest_main)
+
+add_test(NAME GameLogicTest COMMAND GameLogicTestRunner)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
