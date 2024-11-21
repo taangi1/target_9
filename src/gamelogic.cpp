@@ -9,15 +9,29 @@
 
 #include <stdexcept>
 #include <random>
+#include <iostream>
 
 GameLogic::GameLogic()
 {
+    for (auto &row : board)
+    {
+        for (auto &value : row)
+        {
+            value = 9; // Set all values of board to 9.
+        }
+    }
     current_difficulty = 1;
     num_moves = 0;
+    solution = new Stack<Move>;
+    historyMoves = new Stack<Move>;
+    undoHistory = new Stack<Move>;
 }
 
 GameLogic::~GameLogic()
 {
+    delete solution;
+    delete historyMoves;
+    delete undoHistory;
 }
 
 bool GameLogic::isWin() const
@@ -46,7 +60,7 @@ void GameLogic::makeMove(Move move)
         board[i][move.col] = (board[i][move.col] % 9) + 1; // If value in selected col and row i is greater or equal to 9 set it to 1; increment by 1 otherwise.
     }
     board[move.row][move.col] <= 1 ? board[move.row][move.col] = 9 : --board[move.row][move.col]; // Handle increment of board[row][col] twice during the loop.
-    historyMoves.push(move);
+    historyMoves->push(move);
 }
 
 void GameLogic::makeMove(Move move, bool decrement)
@@ -66,7 +80,12 @@ void GameLogic::makeMove(Move move, bool decrement)
 
 int GameLogic::getBoardValue(Move move) const
 {
-    return board[move.row][move.col]; // Return board value in a given row and column.
+    std::cout << move.row << move.col << std::endl;
+    if (!(move.row >= MAX_SIZE || move.col >= MAX_SIZE || move.row < 0 || move.col < 0))
+    {
+        return board[move.row][move.col]; // Return board value in a given row and column.
+    }
+    return -1;
 }
 
 void GameLogic::init()
@@ -83,8 +102,12 @@ void GameLogic::init()
             value = 9; // Set all values of board to 9.
         }
     }
-    solution.~Stack();
-    historyMoves.~Stack();
+    delete solution;
+    delete historyMoves;
+    delete undoHistory;
+    solution = new Stack<Move>;
+    historyMoves = new Stack<Move>;
+    undoHistory = new Stack<Move>;
     // Create a random device and a random number generator
     std::random_device rd;  // Obtain a random number from hardware
     std::mt19937 gen(rd()); // Seed the generator
@@ -95,7 +118,7 @@ void GameLogic::init()
     {
         Move move = {distrib(gen), distrib(gen)};
         makeMove(move, -1); // Decrement random rows and cols by one.
-        solution.push(move);
+        solution->push(move);
     }
     num_moves = 0;
 }
@@ -120,19 +143,31 @@ void GameLogic::undoMove()
     {
         throw std::runtime_error("Cannot undo move with number of moves " + std::to_string(num_moves));
     }
-    makeMove(historyMoves.pop(), -1);
+    undoHistory->push(historyMoves->top());
+    makeMove(historyMoves->pop(), -1);
 }
 
 void GameLogic::redoMove()
 {
-    if (num_moves<=0)
+    if (undoHistory->isEmpty())
     {
-        throw std::runtime_error("Cannot redo move with number of moves " + std::to_string(num_moves));
+        throw std::runtime_error("Cannot undo from empty stack.");
     }
-    makeMove(historyMoves.top());
+    makeMove(undoHistory->pop());
 }
 
 int GameLogic::getNumMoves() const
 {
     return num_moves;
+}
+
+bool GameLogic::isUndoHistoryEmpty() const
+{
+    return undoHistory->isEmpty();
+}
+
+void GameLogic::clearUndoHistory()
+{
+    delete undoHistory;
+    undoHistory = new Stack<Move>;
 }

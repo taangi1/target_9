@@ -59,7 +59,6 @@ public:
      * @brief Getter function to get a value from the board.
      * @param move move of struct Move containing row and col members. {row, col}.
      * @return Value in a given row and column.
-     * @warning May overflow.
      */
     int getBoardValue(Move move) const;
 
@@ -68,22 +67,45 @@ public:
      */
     void init();
 
+    /**
+     * @brief Sets difficulty to specified value.
+     * @param difficulty difficulty to set.
+     */
     void setDifficulty(int difficulty);
 
+    /**
+     * @brief Get difficulty level from current_difficulty.
+     * @return Returns difficulty level.
+     */
     int getDifficulty() const;
 
+    /**
+     * @brief Undo function to cancel last move and decrement number of moves by one.
+     */
     void undoMove();
 
+    /**
+     * @brief Redo function to play last move again and increment number of moves by one.
+     */
     void redoMove();
     
+    /**
+     * @brief Get number of moves from num_moves.
+     * @return Number of moves.
+     */
     int getNumMoves() const;
+
+    bool isUndoHistoryEmpty() const;
+
+    void clearUndoHistory();
 private:
     int board[MAX_SIZE][MAX_SIZE];
     int num_moves;
     int current_difficulty;
 
-    Stack<Move> historyMoves;
-    Stack<Move> solution;
+    Stack<Move> * historyMoves;
+    Stack<Move> * solution;
+    Stack<Move> * undoHistory;
 };
 
 #endif // GAMELOGIC_H

@@ -37,10 +37,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->actionUndo, &QAction::triggered, this, &MainWindow::undoAction);
     connect(ui->actionRedo, &QAction::triggered, this, &MainWindow::redoAction);
+    connect(ui->actionShow_Colors, &QAction::triggered, this, &MainWindow::colorsToggle);
+
+    show_colors = true;
 
     // Set the default slider value to label.
     updateDifficultyLabel(ui->slider_difficulty->value());
-    ui->label_moves->setText(QString("Moves: %1").arg(game.getNumMoves()));
 
     game.init();
 
@@ -119,16 +121,22 @@ void MainWindow::playCell()
     QPushButton *button = qobject_cast<QPushButton *>(sender());
     GameLogic::Move move = getButtonRowCol(button);
     game.makeMove(move);
+    ui->actionUndo->setEnabled(true);
+    ui->actionRedo->setEnabled(false);
+    game.clearUndoHistory();
     updateCells();
     if (game.isWin())
     {
         if (showPopup(0))
+        {
             game.init();
+            ui->actionUndo->setEnabled(false);
+            ui->actionRedo->setEnabled(false);
+        }
+        else
+            disable_all();
     }
     updateCells();
-    ui->label_moves->setText(QString("Moves: %1").arg(game.getNumMoves()));
-    ui->actionUndo->setEnabled(true);
-    ui->actionRedo->setEnabled(true);
 }
 
 void MainWindow::hoverEffect()
@@ -144,11 +152,8 @@ void MainWindow::hoverEffect()
 
         if (move.row == selected.row || move.col == selected.col)
         {
-            button->setStyleSheet(
-                "QPushButton {"
-                "   border: 5px solid red;" // Set the border color to red
-                "   padding: 5px;"
-                "}");
+            button->setStyleSheet(button->styleSheet().append(QString("border: 5px solid red;")));
+            button->setStyleSheet(button->styleSheet().append(QString("padding: 5px;")));
         }
     }
 }
@@ -166,7 +171,8 @@ void MainWindow::unHoverEffect()
 
         if (move.row == selected.row || move.col == selected.col)
         {
-            button->setStyleSheet("");
+            button->setStyleSheet(button->styleSheet().remove(QString("border: 5px solid red;")));
+            button->setStyleSheet(button->styleSheet().remove(QString("padding: 5px;")));
         }
     }
 }
@@ -188,6 +194,9 @@ void MainWindow::updateDifficulty()
                 game.setDifficulty(difficultyLevel);
                 game.init(); // Initialize the game
                 updateCells();
+                ui->actionRedo->setEnabled(false);
+                ui->actionUndo->setEnabled(false);
+                enable_all();
             }
             else
             {
@@ -212,10 +221,9 @@ void MainWindow::undoAction()
 {
     game.undoMove();
     updateCells();
-    ui->label_moves->setText(QString("Moves: %1").arg(game.getNumMoves()));
-    if (game.getNumMoves()<=0)
+    ui->actionRedo->setEnabled(true);
+    if (game.getNumMoves() <= 0)
     {
-        ui->actionRedo->setEnabled(false);
         ui->actionUndo->setEnabled(false);
     }
 }
@@ -224,7 +232,15 @@ void MainWindow::redoAction()
 {
     game.redoMove();
     updateCells();
-    ui->label_moves->setText(QString("Moves: %1").arg(game.getNumMoves()));
+    if (game.isUndoHistoryEmpty())
+        ui->actionRedo->setEnabled(false);
+    ui->actionUndo->setEnabled(true);
+}
+
+void MainWindow::colorsToggle()
+{
+    show_colors = !show_colors;
+    updateCells();
 }
 
 void MainWindow::updateCells()
@@ -235,6 +251,67 @@ void MainWindow::updateCells()
         QPushButton *button = qobject_cast<QPushButton *>(item->widget());
         GameLogic::Move move = getButtonRowCol(button);
         button->setText(QString::number(game.getBoardValue(move)));
+        if (show_colors)
+            button->setStyleSheet("background-color: " + getColorForValue(button->text()).name() + ";");
+        else
+            button->setStyleSheet("");
+        ui->label_moves->setText(QString("Moves: %1").arg(game.getNumMoves()));
+    }
+}
+
+QColor MainWindow::getColorForValue(const QString &value)
+{
+    if (value == "1")
+        return QColor(255, 192, 203); // Pastel Pink
+    if (value == "2")
+        return QColor(173, 216, 230); // Pastel Cyan
+    if (value == "3")
+        return QColor(255, 255, 224); // Pastel Yellow
+    if (value == "4")
+        return QColor(255, 182, 100); // Pastel Red
+    if (value == "5")
+        return QColor(144, 238, 144); // Pastel Green
+    if (value == "6")
+        return QColor(255, 218, 185); // Pastel Peach
+    if (value == "7")
+        return QColor(221, 160, 221); // Pastel Violet
+    if (value == "8")
+        return QColor(240, 230, 140); // Pastel Olive
+    if (value == "9")
+        return QColor(255, 160, 122); // Pastel Salmon
+    return QColor(255, 255, 255);     // Default color (white)
+}
+
+void MainWindow::disable_all()
+{
+    ui->actionUndo->setEnabled(false);
+    ui->actionRedo->setEnabled(false);
+    for (int i = 0; i < ui->gridLayout->count(); ++i)
+    {
+        QLayoutItem *item = ui->gridLayout->itemAt(i);
+        HoverButton *button = qobject_cast<HoverButton *>(item->widget());
+        if (button)
+        {
+            disconnect(button, &HoverButton::clicked, this, &MainWindow::playCell);
+            disconnect(button, &HoverButton::hovered, this, &MainWindow::hoverEffect);
+            disconnect(button, &HoverButton::unhovered, this, &MainWindow::unHoverEffect);
+        }
+    }
+}
+
+void MainWindow::enable_all()
+{
+    disable_all(); // To prevent errors.
+    for (int i = 0; i < ui->gridLayout->count(); ++i)
+    {
+        QLayoutItem *item = ui->gridLayout->itemAt(i);
+        HoverButton *button = qobject_cast<HoverButton *>(item->widget());
+        if (button)
+        {
+            connect(button, &HoverButton::clicked, this, &MainWindow::playCell);
+            connect(button, &HoverButton::hovered, this, &MainWindow::hoverEffect);
+            connect(button, &HoverButton::unhovered, this, &MainWindow::unHoverEffect);
+        }
     }
 }
 
