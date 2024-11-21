@@ -18,20 +18,12 @@
  */
 class GameLogic
 {
-private:
-    int board[MAX_SIZE][MAX_SIZE];
-    int num_moves;
-
+public:
     struct Move
     {
         int row;
         int col;
     };
-
-    Stack<Move> moves;
-    Stack<Move> solution;
-
-public:
     /**
      * @brief Constructor for the class. Initializes board to default board size (3x3).
      */
@@ -51,15 +43,41 @@ public:
     /**
      * @brief Make a move in the game. Increments all values in given row and column by one. If value in board was 9, sets it to 1.
      * @param move move of struct Move containing row and col members. {row, col}.
+     * @param value Value by which to make move. Default value is one.
+     * @throw std::out_of_range if the move is bigger than dimensions of a square array defined by MAX_SIZE.
      */
     void makeMove(Move move);
+
+    /**
+     * @brief Overloaded makeMove(Move move). Make a move by decrementing values by one. Used in init method.
+     * @param move move of struct Move containing row and col members. {row, col}.
+     * @param decrement If specified, function is overloaded and decrements by one.
+     */
+    void makeMove(Move move, bool decrement);
 
     /**
      * @brief Getter function to get a value from the board.
      * @param move move of struct Move containing row and col members. {row, col}.
      * @return Value in a given row and column.
+     * @warning May overflow.
      */
-    int getBoardValue(Move move);
+    int getBoardValue(Move move) const;
+
+    /**
+     * @brief Initializes game with the set difficulty. Substracts 1 from random rows and columns.
+     */
+    void init();
+
+    void setDifficulty(int difficulty);
+
+    int getDifficulty() const;
+private:
+    int board[MAX_SIZE][MAX_SIZE];
+    int num_moves;
+    int current_difficulty;
+
+    Stack<Move> historyMoves;
+    Stack<Move> solution;
 };
 
 #endif // GAMELOGIC_H

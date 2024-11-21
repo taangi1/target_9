@@ -30,7 +30,10 @@ TEST_F(GameLogicTest, TestMakeMoveAllowed)
 TEST_F(GameLogicTest, TestMakeMoveOverflow)
 {
     // Add assertions to check that function throws error correctly
-    EXPECT_THROW(gameLogic.makeMove({2, 3}), std::overflow_error);
-    EXPECT_THROW(gameLogic.makeMove({3, 2}), std::overflow_error);
-    EXPECT_THROW(gameLogic.makeMove({5, 10}), std::overflow_error);
+    EXPECT_THROW(gameLogic.makeMove({2, 3}), std::out_of_range);
+    EXPECT_THROW(gameLogic.makeMove({3, 2}), std::out_of_range);
+    EXPECT_THROW(gameLogic.makeMove({5, 10}), std::out_of_range);
+    EXPECT_THROW(gameLogic.makeMove({0, -10}), std::out_of_range);
+    EXPECT_THROW(gameLogic.makeMove({-1, -10}), std::out_of_range);
+    EXPECT_THROW(gameLogic.makeMove({-1, 1}), std::out_of_range);
 }
