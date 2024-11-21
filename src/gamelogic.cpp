@@ -13,6 +13,7 @@
 GameLogic::GameLogic()
 {
     current_difficulty = 1;
+    num_moves = 0;
 }
 
 GameLogic::~GameLogic()
@@ -38,6 +39,7 @@ void GameLogic::makeMove(Move move)
     {
         throw std::out_of_range("Cannot play move at row " + std::to_string(move.row) + ", column " + std::to_string(move.col));
     }
+    ++num_moves;
     for (int i = 0; i < MAX_SIZE; ++i)
     {
         board[move.row][i] = (board[move.row][i] % 9) + 1; // If value in selected row and column i is greater or equal to 9 set it to 1; increment by 1 otherwise.
@@ -59,6 +61,7 @@ void GameLogic::makeMove(Move move, bool decrement)
         board[i][move.col] <= 1 ? board[i][move.col] = 9 : --board[i][move.col]; // If value in selected col and row i is greater or less or equal to 1 set it to 9; decrement by 1 otherwise.
     }
     board[move.row][move.col] >= 9 ? board[move.row][move.col] = 1 : ++board[move.row][move.col]; // Handle decrement of board[row][col] twice during the loop.
+    --num_moves;
 }
 
 int GameLogic::getBoardValue(Move move) const
@@ -94,6 +97,7 @@ void GameLogic::init()
         makeMove(move, -1); // Decrement random rows and cols by one.
         solution.push(move);
     }
+    num_moves = 0;
 }
 
 void GameLogic::setDifficulty(int difficulty)
@@ -108,4 +112,27 @@ void GameLogic::setDifficulty(int difficulty)
 int GameLogic::getDifficulty() const
 {
     return current_difficulty;
+}
+
+void GameLogic::undoMove()
+{
+    if (num_moves<=0)
+    {
+        throw std::runtime_error("Cannot undo move with number of moves " + std::to_string(num_moves));
+    }
+    makeMove(historyMoves.pop(), -1);
+}
+
+void GameLogic::redoMove()
+{
+    if (num_moves<=0)
+    {
+        throw std::runtime_error("Cannot redo move with number of moves " + std::to_string(num_moves));
+    }
+    makeMove(historyMoves.top());
+}
+
+int GameLogic::getNumMoves() const
+{
+    return num_moves;
 }

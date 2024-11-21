@@ -32,8 +32,15 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->slider_difficulty, &QSlider::valueChanged, this, &MainWindow::updateDifficultyLabel);
     connect(ui->slider_difficulty, &QSlider::sliderReleased, this, &MainWindow::updateDifficulty);
 
+    connect(ui->actionExit, &QAction::triggered, this, &MainWindow::close);
+    connect(ui->actionNew_Game, &QAction::triggered, this, &MainWindow::updateDifficulty);
+
+    connect(ui->actionUndo, &QAction::triggered, this, &MainWindow::undoAction);
+    connect(ui->actionRedo, &QAction::triggered, this, &MainWindow::redoAction);
+
     // Set the default slider value to label.
     updateDifficultyLabel(ui->slider_difficulty->value());
+    ui->label_moves->setText(QString("Moves: %1").arg(game.getNumMoves()));
 
     game.init();
 
@@ -52,8 +59,8 @@ int MainWindow::showPopup(int level)
     {
     case 2:
     {
-        msgBox.setWindowTitle("Warning");                                                  // Set the title of pop-up.
-        msgBox.setText("Changing this setting will overwrite current state of the game!"); // Set the text of pop-up.
+        msgBox.setWindowTitle("Warning");             // Set the title of pop-up.
+        msgBox.setText("All progress will be lost!"); // Set the text of pop-up.
         msgBox.setIcon(QMessageBox::Warning);
         msgBox.setStandardButtons(QMessageBox::Apply | QMessageBox::Discard); // Add two buttons to pop-up.
         msgBox.setDefaultButton(QMessageBox::Discard);
@@ -72,11 +79,11 @@ int MainWindow::showPopup(int level)
         }
         break;
     }
-    
+
     case 0:
     {
-        msgBox.setWindowTitle("Congratulations!");                                                  // Set the title of pop-up.
-        msgBox.setText("You WIN!"); // Set the text of pop-up.
+        msgBox.setWindowTitle("Congratulations!"); // Set the title of pop-up.
+        msgBox.setText("You WIN!");                // Set the text of pop-up.
         msgBox.setIcon(QMessageBox::Information);
         msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Reset); // Add two buttons to pop-up.
         msgBox.setDefaultButton(QMessageBox::Ok);
@@ -95,7 +102,6 @@ int MainWindow::showPopup(int level)
         }
         break;
     }
-
 
     default:
         break;
@@ -120,6 +126,9 @@ void MainWindow::playCell()
             game.init();
     }
     updateCells();
+    ui->label_moves->setText(QString("Moves: %1").arg(game.getNumMoves()));
+    ui->actionUndo->setEnabled(true);
+    ui->actionRedo->setEnabled(true);
 }
 
 void MainWindow::hoverEffect()
@@ -197,6 +206,25 @@ void MainWindow::updateDifficulty()
         ui->slider_difficulty->setValue(game.getDifficulty());
         updateDifficultyLabel(game.getDifficulty());
     }
+}
+
+void MainWindow::undoAction()
+{
+    game.undoMove();
+    updateCells();
+    ui->label_moves->setText(QString("Moves: %1").arg(game.getNumMoves()));
+    if (game.getNumMoves()<=0)
+    {
+        ui->actionRedo->setEnabled(false);
+        ui->actionUndo->setEnabled(false);
+    }
+}
+
+void MainWindow::redoAction()
+{
+    game.redoMove();
+    updateCells();
+    ui->label_moves->setText(QString("Moves: %1").arg(game.getNumMoves()));
 }
 
 void MainWindow::updateCells()

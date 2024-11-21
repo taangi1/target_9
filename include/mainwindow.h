@@ -46,11 +46,6 @@ public:
 private slots:
 
     /**
-     * @brief Shows a win pop-up message when player wins.
-     */
-    int showPopup(int level);
-
-    /**
      * @brief Updates the difficulty label based on the provided value.
      *
      * @param value The new difficulty value to display.
@@ -68,14 +63,23 @@ private slots:
 
     void updateDifficulty();
 
+    void undoAction();
+
+    void redoAction();
+
 private:
+    /**
+     * @brief Shows a win pop-up message when player wins.
+     */
+    int showPopup(int level);
+
     /**
      * @brief Updates all cells in grid layout.
      */
     void updateCells();
 
-    GameLogic::Move getButtonRowCol(QPushButton * button) const;
-    
+    GameLogic::Move getButtonRowCol(QPushButton *button) const;
+
     Ui::MainWindow *ui;
     GameLogic game;
 };

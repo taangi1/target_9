@@ -71,6 +71,12 @@ public:
     void setDifficulty(int difficulty);
 
     int getDifficulty() const;
+
+    void undoMove();
+
+    void redoMove();
+    
+    int getNumMoves() const;
 private:
     int board[MAX_SIZE][MAX_SIZE];
     int num_moves;
