@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionUndo, &QAction::triggered, this, &MainWindow::undoAction);
     connect(ui->actionRedo, &QAction::triggered, this, &MainWindow::redoAction);
     connect(ui->actionShow_Colors, &QAction::triggered, this, &MainWindow::colorsToggle);
+    connect(ui->actionHint, &QAction::triggered, this, &MainWindow::hintAction);
 
     show_colors = true;
 
@@ -121,17 +122,12 @@ void MainWindow::playCell()
     QPushButton *button = qobject_cast<QPushButton *>(sender());
     GameLogic::Move move = getButtonRowCol(button);
     game.makeMove(move);
-    ui->actionUndo->setEnabled(true);
-    ui->actionRedo->setEnabled(false);
-    game.clearUndoHistory();
     updateCells();
     if (game.isWin())
     {
         if (showPopup(0))
         {
             game.init();
-            ui->actionUndo->setEnabled(false);
-            ui->actionRedo->setEnabled(false);
         }
         else
             disable_all();
@@ -193,10 +189,8 @@ void MainWindow::updateDifficulty()
             { // Check if conversion was successful
                 game.setDifficulty(difficultyLevel);
                 game.init(); // Initialize the game
-                updateCells();
-                ui->actionRedo->setEnabled(false);
-                ui->actionUndo->setEnabled(false);
                 enable_all();
+                updateCells();
             }
             else
             {
@@ -221,26 +215,24 @@ void MainWindow::undoAction()
 {
     game.undoMove();
     updateCells();
-    ui->actionRedo->setEnabled(true);
-    if (game.getNumMoves() <= 0)
-    {
-        ui->actionUndo->setEnabled(false);
-    }
 }
 
 void MainWindow::redoAction()
 {
     game.redoMove();
     updateCells();
-    if (game.isUndoHistoryEmpty())
-        ui->actionRedo->setEnabled(false);
-    ui->actionUndo->setEnabled(true);
 }
 
 void MainWindow::colorsToggle()
 {
     show_colors = !show_colors;
     updateCells();
+}
+
+void MainWindow::hintAction()
+{
+    GameLogic::Move nextMove = game.hintNextMove();
+    highlightButton(nextMove);
 }
 
 void MainWindow::updateCells()
@@ -256,6 +248,30 @@ void MainWindow::updateCells()
         else
             button->setStyleSheet("");
         ui->label_moves->setText(QString("Moves: %1").arg(game.getNumMoves()));
+    }
+
+    ui->actionHint->setEnabled(game.isCanHint());
+    ui->actionRedo->setEnabled(game.isCanRedo());
+    ui->actionUndo->setEnabled(game.isCanUndo());
+        
+}
+
+void MainWindow::highlightButton(const GameLogic::Move &move)
+{
+    QPushButton *button = getButtonByMove(move);
+    if (button)
+    {
+        button->setStyleSheet(button->styleSheet().append(QString("border: 5px solid yellow;")));
+        button->setStyleSheet(button->styleSheet().append(QString("padding: 5px;")));
+    }
+}
+
+void MainWindow::highlightButton(QPushButton *button)
+{
+    if (button)
+    {
+        button->setStyleSheet(button->styleSheet().append(QString("border: 5px solid yellow;")));
+        button->setStyleSheet(button->styleSheet().append(QString("padding: 5px;")));
     }
 }
 
@@ -284,8 +300,6 @@ QColor MainWindow::getColorForValue(const QString &value)
 
 void MainWindow::disable_all()
 {
-    ui->actionUndo->setEnabled(false);
-    ui->actionRedo->setEnabled(false);
     for (int i = 0; i < ui->gridLayout->count(); ++i)
     {
         QLayoutItem *item = ui->gridLayout->itemAt(i);
@@ -330,4 +344,25 @@ GameLogic::Move MainWindow::getButtonRowCol(QPushButton *button) const
         }
     }
     return GameLogic::Move({-1, -1});
+}
+
+QPushButton *MainWindow::getButtonByMove(const GameLogic::Move &move) const
+{
+    for (int i = 0; i < ui->gridLayout->count(); ++i)
+    {
+        QLayoutItem *item = ui->gridLayout->itemAt(i);
+        if (item)
+        {
+            QWidget *widget = item->widget();
+            if (widget && qobject_cast<QPushButton *>(widget))
+            {
+                QPushButton *button = qobject_cast<QPushButton *>(widget);
+                if (button->objectName().contains(QString::number(move.row) + QString::number(move.col), Qt::CaseInsensitive))
+                {
+                    return button;
+                }
+            }
+        }
+    }
+    return nullptr;
 }

@@ -87,6 +87,8 @@ private slots:
      */
     void colorsToggle();
 
+    void hintAction();
+
 private:
     /**
      * @brief Shows a win pop-up message when player wins.
@@ -97,6 +99,9 @@ private:
      * @brief Updates all cells in grid layout.
      */
     void updateCells();
+
+    void highlightButton(const GameLogic::Move &move);
+    void highlightButton(QPushButton *button);
 
     /**
      * @brief Helper function which returns QColor for given value of a text.
@@ -109,7 +114,7 @@ private:
      * @brief Disable all buttons.
      */
     void disable_all();
-    
+
     /**
      * @brief Enable all buttons.
      */
@@ -121,6 +126,8 @@ private:
      * @return GameLogic::Move
      */
     GameLogic::Move getButtonRowCol(QPushButton *button) const;
+
+    QPushButton *getButtonByMove(const GameLogic::Move &move) const;
 
     Ui::MainWindow *ui;
     GameLogic game;

@@ -9,7 +9,6 @@
 
 #include <stdexcept>
 #include <random>
-#include <iostream>
 
 GameLogic::GameLogic()
 {
@@ -22,19 +21,20 @@ GameLogic::GameLogic()
     }
     current_difficulty = 1;
     num_moves = 0;
-    solution = new Stack<Move>;
+    canHint = false;
+    canRedo = false;
+    canUndo = false;
     historyMoves = new Stack<Move>;
     undoHistory = new Stack<Move>;
 }
 
 GameLogic::~GameLogic()
 {
-    delete solution;
     delete historyMoves;
     delete undoHistory;
 }
 
-bool GameLogic::isWin() const
+bool GameLogic::isWin()
 {
     for (const auto &row : board)
     {
@@ -44,6 +44,9 @@ bool GameLogic::isWin() const
                 return false; // False if any value not equal to 9.
         }
     }
+    canRedo = false;
+    canHint = false;
+    canUndo = false;
     return true; // All values are 9.
 }
 
@@ -53,17 +56,21 @@ void GameLogic::makeMove(Move move)
     {
         throw std::out_of_range("Cannot play move at row " + std::to_string(move.row) + ", column " + std::to_string(move.col));
     }
-    ++num_moves;
     for (int i = 0; i < MAX_SIZE; ++i)
     {
         board[move.row][i] = (board[move.row][i] % 9) + 1; // If value in selected row and column i is greater or equal to 9 set it to 1; increment by 1 otherwise.
         board[i][move.col] = (board[i][move.col] % 9) + 1; // If value in selected col and row i is greater or equal to 9 set it to 1; increment by 1 otherwise.
     }
+    ++num_moves;
     board[move.row][move.col] <= 1 ? board[move.row][move.col] = 9 : --board[move.row][move.col]; // Handle increment of board[row][col] twice during the loop.
     historyMoves->push(move);
+    canUndo = true;
+    canRedo = false;
+    delete undoHistory;
+    undoHistory = new Stack<Move>;
 }
 
-void GameLogic::makeMove(Move move, bool decrement)
+void GameLogic::reverseMove(Move move)
 {
     if (move.row >= MAX_SIZE || move.col >= MAX_SIZE || move.row < 0 || move.col < 0)
     {
@@ -78,14 +85,30 @@ void GameLogic::makeMove(Move move, bool decrement)
     --num_moves;
 }
 
+void GameLogic::redoMakeMove(Move move)
+{
+    if (move.row >= MAX_SIZE || move.col >= MAX_SIZE || move.row < 0 || move.col < 0)
+    {
+        throw std::out_of_range("Cannot play move at row " + std::to_string(move.row) + ", column " + std::to_string(move.col));
+    }
+    for (int i = 0; i < MAX_SIZE; ++i)
+    {
+        board[move.row][i] = (board[move.row][i] % 9) + 1; // If value in selected row and column i is greater or equal to 9 set it to 1; increment by 1 otherwise.
+        board[i][move.col] = (board[i][move.col] % 9) + 1; // If value in selected col and row i is greater or equal to 9 set it to 1; increment by 1 otherwise.
+    }
+    ++num_moves;
+    board[move.row][move.col] <= 1 ? board[move.row][move.col] = 9 : --board[move.row][move.col]; // Handle increment of board[row][col] twice during the loop.
+    historyMoves->push(move);
+    canUndo = true;
+}
+
 int GameLogic::getBoardValue(Move move) const
 {
-    std::cout << move.row << move.col << std::endl;
     if (!(move.row >= MAX_SIZE || move.col >= MAX_SIZE || move.row < 0 || move.col < 0))
     {
         return board[move.row][move.col]; // Return board value in a given row and column.
     }
-    return -1;
+    throw std::out_of_range("Cannot get value at row " + std::to_string(move.row) + ", column " + std::to_string(move.col));
 }
 
 void GameLogic::init()
@@ -102,30 +125,32 @@ void GameLogic::init()
             value = 9; // Set all values of board to 9.
         }
     }
-    delete solution;
-    delete historyMoves;
-    delete undoHistory;
-    solution = new Stack<Move>;
-    historyMoves = new Stack<Move>;
-    undoHistory = new Stack<Move>;
     // Create a random device and a random number generator
     std::random_device rd;  // Obtain a random number from hardware
     std::mt19937 gen(rd()); // Seed the generator
 
     // Define the range for the random numbers
-    std::uniform_int_distribution<> distrib(0, MAX_SIZE-1); // Define the range [0,2] for rows and cols
+    std::uniform_int_distribution<> distrib(0, MAX_SIZE - 1); // Define the range [0,2] for rows and cols
     for (int i = 0; i < current_difficulty; ++i)
     {
         Move move = {distrib(gen), distrib(gen)};
-        makeMove(move, -1); // Decrement random rows and cols by one.
-        solution->push(move);
+        reverseMove(move); // Decrement random rows and cols by one.
     }
+
+    delete historyMoves;
+    delete undoHistory;
+    historyMoves = new Stack<Move>;
+    undoHistory = new Stack<Move>;
+
+    canHint = true;
+    canRedo = false;
+    canUndo = false;
     num_moves = 0;
 }
 
 void GameLogic::setDifficulty(int difficulty)
 {
-    if (difficulty>MAX_SIZE*MAX_SIZE)
+    if (difficulty > MAX_SIZE * MAX_SIZE)
     {
         throw std::out_of_range("Cannot set the difficulty " + std::to_string(difficulty));
     }
@@ -139,12 +164,22 @@ int GameLogic::getDifficulty() const
 
 void GameLogic::undoMove()
 {
-    if (num_moves<=0)
+    if (num_moves <= 0)
     {
         throw std::runtime_error("Cannot undo move with number of moves " + std::to_string(num_moves));
     }
-    undoHistory->push(historyMoves->top());
-    makeMove(historyMoves->pop(), -1);
+    if (canUndo)
+    {
+        undoHistory->push(historyMoves->top());
+        reverseMove(historyMoves->pop());
+        canRedo = true;
+        canUndo = num_moves != 0;
+    }
+    else
+    {
+        canUndo = false;
+        throw std::runtime_error("GameLogic::undoMove() should not come to this line");
+    }
 }
 
 void GameLogic::redoMove()
@@ -153,7 +188,16 @@ void GameLogic::redoMove()
     {
         throw std::runtime_error("Cannot undo from empty stack.");
     }
-    makeMove(undoHistory->pop());
+    if (canRedo)
+    {
+        redoMakeMove(undoHistory->pop());
+        canRedo = !undoHistory->isEmpty();
+    }
+    else
+    {
+        canRedo = false;
+        throw std::runtime_error("GameLogic::redoMove() should not come to this line");
+    }
 }
 
 int GameLogic::getNumMoves() const
@@ -161,13 +205,44 @@ int GameLogic::getNumMoves() const
     return num_moves;
 }
 
-bool GameLogic::isUndoHistoryEmpty() const
+bool GameLogic::isCanRedo() const
 {
-    return undoHistory->isEmpty();
+    return canRedo;
 }
 
-void GameLogic::clearUndoHistory()
+bool GameLogic::isCanUndo() const
 {
-    delete undoHistory;
-    undoHistory = new Stack<Move>;
+    return canUndo;
+}
+
+bool GameLogic::isCanHint() const
+{
+    return canHint;
+}
+
+GameLogic::Move GameLogic::hintNextMove() const
+{
+    int minMoves = -1;
+    Move bestMove = {-1, -1};
+    for (int i = 0; i < MAX_SIZE; ++i)
+    {
+        for (int j = 0; j < MAX_SIZE; ++j)
+        {
+            int currentMoves = 0;
+
+            for (int k = 0; k < MAX_SIZE; ++k)
+                currentMoves += (9 - board[i][k]);
+            for (int k = 0; k < MAX_SIZE; ++k)
+                currentMoves += (9 - board[k][j]);
+            currentMoves -= (9 - board[i][j]);
+
+            if (currentMoves > minMoves)
+            {
+                minMoves = currentMoves;
+                bestMove = {i, j};
+            }
+        }
+    }
+
+    return bestMove;
 }

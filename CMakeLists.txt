@@ -47,7 +47,7 @@ enable_testing()
 
 set(TEST_SOURCES
     tests/test_gamelogic_makeMove.cpp
-    tests/test_gamelogic_decrementMove.cpp
+    tests/test_gamelogic_undoMove.cpp
     src/gamelogic.cpp
 )
 
