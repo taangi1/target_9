@@ -5,7 +5,7 @@
  * @version 0.1
  * @date 20.11.2024
  */
-#include "gamelogic.h"
+#include "gamelogic.hpp"
 
 #include <stdexcept>
 #include <random>

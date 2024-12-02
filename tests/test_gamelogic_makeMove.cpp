@@ -1,4 +1,4 @@
-#include "gamelogic.h"
+#include "gamelogic.hpp"
 #include <gtest/gtest.h>
 
 class GameLogicTest : public ::testing::Test

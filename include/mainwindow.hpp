@@ -1,5 +1,5 @@
 /**
- * @file mainwindow.h
+ * @file mainwindow.hpp
  * @brief This file defines the MainWindow class, which serves as the main application window.
  * @author Ignat Romanov
  * @version 0.1
@@ -9,7 +9,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "gamelogic.h"
+#include "gamelogic.hpp"
 #include <QMainWindow>
 #include <QPushButton>
 
@@ -100,7 +100,22 @@ private:
      */
     void updateCells();
 
+    /**
+     * @brief Highlights a button based on a game move.
+     *
+     * This function takes a move from the game logic and highlights the corresponding button.
+     *
+     * @param move The move to be highlighted.
+     */
     void highlightButton(const GameLogic::Move &move);
+
+    /**
+     * @brief Highlights a specific QPushButton.
+     *
+     * This function highlights the provided QPushButton.
+     *
+     * @param button Pointer to the QPushButton to be highlighted.
+     */
     void highlightButton(QPushButton *button);
 
     /**
@@ -127,6 +142,18 @@ private:
      */
     GameLogic::Move getButtonRowCol(QPushButton *button) const;
 
+    /**
+     * @brief Retrieves the QPushButton associated with a specific game move.
+     *
+     * This function takes a game move as input and returns the corresponding
+     * QPushButton that represents that move in the user interface.
+     * If no button is associated with the given move, the function may return
+     * a nullptr.
+     *
+     * @param move The game move for which to retrieve the associated button.
+     * @return A pointer to the QPushButton associated with the move, or nullptr
+     *         if no such button exists.
+     */
     QPushButton *getButtonByMove(const GameLogic::Move &move) const;
 
     Ui::MainWindow *ui;

@@ -11,7 +11,7 @@
 
 #define MAX_SIZE 3 // Max size of board.
 
-#include "stack.h"
+#include "stack.hpp"
 
 /**
  * @brief Provides the functionality for target 9 game.

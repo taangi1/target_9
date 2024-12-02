@@ -399,7 +399,7 @@
   <customwidget>
    <class>HoverButton</class>
    <extends>QWidget</extends>
-   <header>hoverbutton.h</header>
+   <header>hoverbutton.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

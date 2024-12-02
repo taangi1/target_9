@@ -8,7 +8,8 @@
 class HoverButton : public QPushButton {
     Q_OBJECT
 public:
-    explicit HoverButton(QWidget *parent = nullptr) : QPushButton(parent) {}
+    // explicit HoverButton(QWidget *parent = nullptr) : QPushButton(parent) {}
+    using QPushButton::QPushButton;
 signals:
     void hovered();   // Custom signal for hover
     void unhovered(); // Custom signal for unhover

@@ -19,10 +19,10 @@ set(SOURCES
 )
 
 set(HEADERS
-    include/mainwindow.h
-    include/gamelogic.h
-    include/stack.h
-    include/hoverbutton.h
+    include/mainwindow.hpp
+    include/gamelogic.hpp
+    include/stack.hpp
+    include/hoverbutton.hpp
 )
 
 set(UI_FILES

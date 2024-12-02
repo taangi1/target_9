@@ -6,9 +6,9 @@
  * @date 19.11.2024
  */
 
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "ui_mainwindow.h"
-#include "hoverbutton.h"
+#include "hoverbutton.hpp"
 #include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
