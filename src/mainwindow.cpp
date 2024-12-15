@@ -2,7 +2,7 @@
  * @file mainwindow.cpp
  * @brief Implementation of MainWindow class from mainwindow.h
  * @author Ignat Romanov
- * @version 0.1
+ * @version 1.1
  * @date 19.11.2024
  */
 
@@ -39,6 +39,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionRedo, &QAction::triggered, this, &MainWindow::redoAction);
     connect(ui->actionShow_Colors, &QAction::triggered, this, &MainWindow::colorsToggle);
     connect(ui->actionHint, &QAction::triggered, this, &MainWindow::hintAction);
+    connect(ui->actionAbout, &QAction::triggered, this, [&]{
+        QMessageBox::information(this, "About Target 9", "A 'Target 9' game is set on a 3x3 grid of digits (integers). The game starts with an initial configuration of digits and the user's target is to change all of them to 9 in the minimum number of moves.\nHow to make a Move:\nIn order to make a move, the user selects a cell, and all the digits in the same row and column as the selected cell are increased by one\nVersion: 1.1.0\n");
+    });
 
     show_colors = true;
 
@@ -119,20 +122,31 @@ void MainWindow::updateDifficultyLabel(int value)
 
 void MainWindow::playCell()
 {
-    QPushButton *button = qobject_cast<QPushButton *>(sender());
-    GameLogic::Move move = getButtonRowCol(button);
-    game.makeMove(move);
-    updateCells();
-    if (game.isWin())
+    try
     {
-        if (showPopup(0))
+        QPushButton *button = qobject_cast<QPushButton *>(sender());
+        GameLogic::Move move = getButtonRowCol(button);
+        game.makeMove(move);
+        updateCells();
+        hoverEffect();
+        if (game.isWin())
         {
-            game.init();
+            if (showPopup(0))
+            {
+                game.init();
+                updateCells();
+            }
+            else
+            {
+                disable_all();
+                updateCells();
+            }
         }
-        else
-            disable_all();
     }
-    updateCells();
+    catch (const std::exception &e)
+    {
+        QMessageBox::warning(this, "Error", "Unexpected error occured:\n" + QString(e.what())); // catch error and show a pop up with details.
+    }
 }
 
 void MainWindow::hoverEffect()
@@ -175,52 +189,73 @@ void MainWindow::unHoverEffect()
 
 void MainWindow::updateDifficulty()
 {
-    if (showPopup(2))
+    try
     {
-        QString difficultyText = ui->label_difficulty->text();
-
-        QStringList parts = difficultyText.split(": "); // Split the string by ": "
-        if (parts.size() == 2)
+        if (showPopup(2))
         {
-            bool ok;                                   // Variable to check if conversion was successful
-            int difficultyLevel = parts[1].toInt(&ok); // Convert the second part to int
+            QString difficultyText = ui->label_difficulty->text();
 
-            if (ok)
-            { // Check if conversion was successful
-                game.setDifficulty(difficultyLevel);
-                game.init(); // Initialize the game
-                enable_all();
-                updateCells();
+            QStringList parts = difficultyText.split(": "); // Split the string by ": "
+            if (parts.size() == 2)
+            {
+                bool ok;                                   // Variable to check if conversion was successful
+                int difficultyLevel = parts[1].toInt(&ok); // Convert the second part to int
+
+                if (ok)
+                { // Check if conversion was successful
+                    game.setDifficulty(difficultyLevel);
+                    game.init(); // Initialize the game
+                    enable_all();
+                    updateCells();
+                }
+                else
+                {
+                    // Handle the error: conversion failed
+                    QMessageBox::warning(this, "Error", "Invalid difficulty level.");
+                }
             }
             else
             {
-                // Handle the error: conversion failed
-                QMessageBox::warning(this, "Error", "Invalid difficulty level.");
+                // Handle the error: unexpected format
+                QMessageBox::warning(this, "Error", "Unexpected difficulty label format.");
             }
         }
         else
         {
-            // Handle the error: unexpected format
-            QMessageBox::warning(this, "Error", "Unexpected difficulty label format.");
+            ui->slider_difficulty->setValue(game.getDifficulty());
+            updateDifficultyLabel(game.getDifficulty());
         }
     }
-    else
+    catch (const std::exception &e)
     {
-        ui->slider_difficulty->setValue(game.getDifficulty());
-        updateDifficultyLabel(game.getDifficulty());
+        QMessageBox::warning(this, "Error", "Unexpected error occured:\n" + QString(e.what()));
     }
 }
 
 void MainWindow::undoAction()
 {
-    game.undoMove();
-    updateCells();
+    try
+    {
+        game.undoMove();
+        updateCells();
+    }
+    catch (const std::exception &e)
+    {
+        QMessageBox::warning(this, "Error", "Unexpected error occured:\n" + QString(e.what()));
+    }
 }
 
 void MainWindow::redoAction()
 {
-    game.redoMove();
-    updateCells();
+    try
+    {
+        game.redoMove();
+        updateCells();
+    }
+    catch (const std::exception &e)
+    {
+        QMessageBox::warning(this, "Error", "Unexpected error occured:\n" + QString(e.what()));
+    }
 }
 
 void MainWindow::colorsToggle()
@@ -231,29 +266,45 @@ void MainWindow::colorsToggle()
 
 void MainWindow::hintAction()
 {
-    GameLogic::Move nextMove = game.hintNextMove();
-    highlightButton(nextMove);
+    try
+    {
+        GameLogic::Move nextMove = game.hintNextMove();
+        highlightButton(nextMove);
+    }
+    catch (const std::exception &e)
+    {
+        QMessageBox::warning(this, "Error", "Unexpected error occured:\n" + QString(e.what()));
+    }
 }
 
 void MainWindow::updateCells()
 {
-    for (int i = 0; i < ui->gridLayout->count(); ++i)
+    try
     {
-        QLayoutItem *item = ui->gridLayout->itemAt(i);
-        QPushButton *button = qobject_cast<QPushButton *>(item->widget());
-        GameLogic::Move move = getButtonRowCol(button);
-        button->setText(QString::number(game.getBoardValue(move)));
-        if (show_colors)
-            button->setStyleSheet("background-color: " + getColorForValue(button->text()).name() + ";");
-        else
-            button->setStyleSheet("");
-        ui->label_moves->setText(QString("Moves: %1").arg(game.getNumMoves()));
-    }
+        for (int i = 0; i < ui->gridLayout->count(); ++i)
+        {
+            QLayoutItem *item = ui->gridLayout->itemAt(i);
+            QPushButton *button = qobject_cast<QPushButton *>(item->widget());
+            GameLogic::Move move = getButtonRowCol(button);
+            button->setText(QString::number(game.getBoardValue(move)));
+            if (show_colors)
+                button->setStyleSheet("background-color: " + getColorForValue(button->text()).name() + ";");
+            else
+                button->setStyleSheet("");
+        }
 
-    ui->actionHint->setEnabled(game.isCanHint());
-    ui->actionRedo->setEnabled(game.isCanRedo());
-    ui->actionUndo->setEnabled(game.isCanUndo());
-        
+        // Update number of moves
+        ui->label_moves->setText(QString("Moves: %1").arg(game.getNumMoves()));
+
+        // Update state of the game
+        ui->actionHint->setEnabled(game.isCanHint());
+        ui->actionRedo->setEnabled(game.isCanRedo());
+        ui->actionUndo->setEnabled(game.isCanUndo());
+    }
+    catch (const std::exception &e)
+    {
+        QMessageBox::warning(this, "Error", "Unexpected error occured:\n" + QString(e.what()));
+    }
 }
 
 void MainWindow::highlightButton(const GameLogic::Move &move)

@@ -1,25 +1,30 @@
 /**
  * @file gamelogic.h
- * @brief Program
+ * @brief Header file for the GameLogic class.
+ *
+ * This file contains the declaration of the GameLogic class, which is responsible
+ * for managing the core game mechanics, including game state, player actions,
+ * and interactions between game entities. The GameLogic class serves as the
+ * central hub for game rules and logic, ensuring that the game operates
+ * according to the defined rules and provides a seamless experience for players.
+ *
  * @author Ignat Romanov
- * @version 0.1
+ * @version 1.1
  * @date 20.11.2024
  */
 
-#ifndef GAMELOGIC_H
-#define GAMELOGIC_H
+#include "stack.hpp"
+
+#ifndef GAMELOGIC_HPP
+#define GAMELOGIC_HPP
 
 #define MAX_SIZE 3 // Max size of board.
-
-#include "stack.hpp"
 
 /**
  * @brief Provides the functionality for target 9 game.
  */
 class GameLogic
 {
-    friend class GameLogicTest;
-
 public:
     struct Move
     {
@@ -54,17 +59,20 @@ public:
      * @brief Getter function to get a value from the board.
      * @param move move of struct Move containing row and col members. {row, col}.
      * @return Value in a given row and column.
+     * @throw std::out_of_range
      */
     int getBoardValue(Move move) const;
 
     /**
      * @brief Initializes game with the set difficulty. Substracts 1 from random rows and columns.
+     * @throw std::out_of_range if difficulty is bigger than MAX_SIZE*MAX_SIZE
      */
     void init();
 
     /**
      * @brief Sets difficulty to specified value.
      * @param difficulty difficulty to set.
+     * @throw std::out_of_range if new difficulty is larger than MAX_SIZE*MAX_SIZE or difficulty is less than or equal to zero.
      */
     void setDifficulty(int difficulty);
 
@@ -76,11 +84,13 @@ public:
 
     /**
      * @brief Undo function to cancel last move and decrement number of moves by one.
+     * @throw std::runtime_error if cannot undo move.
      */
     void undoMove();
 
     /**
      * @brief Redo function to play last move again and increment number of moves by one.
+     * @throw std::runtime_error if cannot redo move.
      */
     void redoMove();
 
@@ -111,6 +121,7 @@ public:
     /**
      * @brief Determine the best next move and return it.
      * @return Best next move of struct GameLogic::Move.
+     * @throw std::runtime_error if cannot hint a move, e.g. when game is finished or not initialized.
      */
     Move hintNextMove() const;
 
@@ -126,17 +137,19 @@ private:
      * @brief Overloaded makeMove(Move move). Make a move by decrementing values by one. Used in init method.
      * @param move move of struct Move containing row and col members. {row, col}.
      * @param decrement If specified, function is overloaded and decrements by one.
+     * @throw std::out_of_range
      */
     void reverseMove(Move move);
 
     /**
      * @brief Make move function redesigned for redo function to destinguish moves by player and GameLogic::redoMove().
      * @param move Move to redo.
+     * @throw std::out_of_range
      */
     void redoMakeMove(Move move);
 
-    Stack<Move> *historyMoves;
-    Stack<Move> *undoHistory;
+    Stack<Move> *historyMoves; // Undo stack
+    Stack<Move> *undoHistory;  // Redo stack
 };
 
-#endif // GAMELOGIC_H
+#endif // GAMELOGIC_HPP

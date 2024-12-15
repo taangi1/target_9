@@ -1,14 +1,25 @@
 /**
  * @file stack.h
  * @brief A template-based stack implementation using a linked list.
+ *
+ * This file defines a generic stack class that uses a linked list
+ * to store elements. The stack supports standard operations such as
+ * push, pop, and top, and it can store any data type specified by
+ * the user.
+ *
+ * @tparam T The type of elements stored in the stack. This can be
+ *            any data type, including built-in types and user-defined
+ *            types, e.g. Move.
+ *
  * @author Ignat Romanov
- * @version 0.1
+ * @version 1.0
  * @date 20.11.2024
  */
-#ifndef STACK_H
-#define STACK_H
 
 #include <stdexcept>
+
+#ifndef STACK_HPP
+#define STACK_HPP
 
 /**
  * @brief A template-based stack implementation using a linked list.
@@ -138,4 +149,4 @@ T Stack<T>::top() const
     return topNode->data; // Return value stored.
 }
 
-#endif // STACK_H
+#endif // STACK_HPP

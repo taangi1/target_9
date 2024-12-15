@@ -1,17 +1,22 @@
 /**
  * @file mainwindow.hpp
  * @brief This file defines the MainWindow class, which serves as the main application window.
+ *
+ * The MainWindow class inherits from QMainWindow and contains the user interface elements
+ * and logic for the main application window. It manages interactions with the user and
+ * coordinates the game logic through the GameLogic class.
+ *
  * @author Ignat Romanov
- * @version 0.1
+ * @version 1.0
  * @date 19.11.2024
  */
-
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
 
 #include "gamelogic.hpp"
 #include <QMainWindow>
 #include <QPushButton>
+
+#ifndef MAINWINDOW_HPP
+#define MAINWINDOW_HPP
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -87,6 +92,9 @@ private slots:
      */
     void colorsToggle();
 
+    /**
+     * @brief Determine and highlight a cell containing the best move.
+     */
     void hintAction();
 
 private:
@@ -160,4 +168,4 @@ private:
     GameLogic game;
     bool show_colors;
 };
-#endif // MAINWINDOW_H
+#endif // MAINWINDOW_HPP
