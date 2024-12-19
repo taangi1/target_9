@@ -39,9 +39,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionRedo, &QAction::triggered, this, &MainWindow::redoAction);
     connect(ui->actionShow_Colors, &QAction::triggered, this, &MainWindow::colorsToggle);
     connect(ui->actionHint, &QAction::triggered, this, &MainWindow::hintAction);
-    connect(ui->actionAbout, &QAction::triggered, this, [&]{
-        QMessageBox::information(this, "About Target 9", "A 'Target 9' game is set on a 3x3 grid of digits (integers). The game starts with an initial configuration of digits and the user's target is to change all of them to 9 in the minimum number of moves.\nHow to make a Move:\nIn order to make a move, the user selects a cell, and all the digits in the same row and column as the selected cell are increased by one\nVersion: 1.1.0\n");
-    });
+    connect(ui->actionAbout, &QAction::triggered, this, [&]
+            { QMessageBox::information(this, "About Target 9", "A 'Target 9' game is set on a 3x3 grid of digits (integers). The game starts with an initial configuration of digits and the user's target is to change all of them to 9 in the minimum number of moves.\nHow to make a Move:\nIn order to make a move, the user selects a cell, and all the digits in the same row and column as the selected cell are increased by one\nVersion: 1.1.0\n"); });
 
     show_colors = true;
 
