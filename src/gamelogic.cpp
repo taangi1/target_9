@@ -34,17 +34,10 @@ GameLogic::GameLogic()
     canHint = false;
     canRedo = false;
     canUndo = false;
-
-    // Assign memory to undo and redo stacks
-    historyMoves = new Stack<Move>;
-    undoHistory = new Stack<Move>;
 }
 
 GameLogic::~GameLogic()
 {
-    // Delete dynamically allocated memory
-    delete historyMoves;
-    delete undoHistory;
 }
 
 // Check if game is won, i.e. all values are 9
@@ -79,14 +72,14 @@ void GameLogic::makeMove(Move move)
     }
     ++num_moves;                                                                                  // Increment moves count
     board[move.row][move.col] <= 1 ? board[move.row][move.col] = 9 : --board[move.row][move.col]; // Handle increment of board[row][col] twice during the loop.
-    historyMoves->push(move);                                                                     // Push current move in undo stack.
+    historyMoves.push(move);                                                                      // Push current move in undo stack.
     canUndo = true;                                                                               // After move player can undo.
     canRedo = false;                                                                              // After move player cannot redo.
 
     // Clear redo stack after each normal move.
-    while (!undoHistory->isEmpty())
+    while (!undoHistory.isEmpty())
     {
-        undoHistory->pop();
+        undoHistory.pop();
     }
 }
 
@@ -120,7 +113,7 @@ void GameLogic::redoMakeMove(Move move)
     }
     ++num_moves;
     board[move.row][move.col] <= 1 ? board[move.row][move.col] = 9 : --board[move.row][move.col]; // Handle increment of board[row][col] twice during the loop.
-    historyMoves->push(move);                                                                     // Push move in undo stack.
+    historyMoves.push(move);                                                                      // Push move in undo stack.
     canUndo = true;
 }
 
@@ -139,6 +132,7 @@ void GameLogic::init()
 {
     if (current_difficulty > MAX_SIZE * MAX_SIZE)
     {
+        current_difficulty = 1;
         throw std::out_of_range("Cannot initialize game with difficulty " + std::to_string(current_difficulty));
     }
     for (auto &row : board)
@@ -161,15 +155,15 @@ void GameLogic::init()
     }
 
     // Clear redo stack at the start of new game.
-    while (!undoHistory->isEmpty())
+    while (!undoHistory.isEmpty())
     {
-        undoHistory->pop();
+        undoHistory.pop();
     }
 
     // Clear undo stack at the start of new game.
-    while (!historyMoves->isEmpty())
+    while (!historyMoves.isEmpty())
     {
-        historyMoves->pop();
+        historyMoves.pop();
     }
 
     canHint = true; // At new game can hint.
@@ -204,10 +198,10 @@ void GameLogic::undoMove()
     }
     if (canUndo) // Check that canUndo is true.
     {
-        undoHistory->push(historyMoves->top()); // Push in redo stack.
-        reverseMove(historyMoves->pop());       // Decrement values in last move.
-        canRedo = true;                         // After undo user can redo.
-        canUndo = num_moves != 0;               // If number of moves is zero then it is not possible to undo anymore.
+        undoHistory.push(historyMoves.top()); // Push in redo stack.
+        reverseMove(historyMoves.pop());      // Decrement values in last move.
+        canRedo = true;                       // After undo user can redo.
+        canUndo = num_moves != 0;             // If number of moves is zero then it is not possible to undo anymore.
     }
     else
     {
@@ -219,15 +213,15 @@ void GameLogic::undoMove()
 // Function to redo move.
 void GameLogic::redoMove()
 {
-    if (undoHistory->isEmpty()) // If redo stack is empty throw exception.
+    if (undoHistory.isEmpty()) // If redo stack is empty throw exception.
     {
         canRedo = false;
         throw std::runtime_error("Cannot redo moves from empty stack.");
     }
     if (canRedo) // Check if possible to redo.
     {
-        redoMakeMove(undoHistory->pop());  // Call redo move function with last undo move.
-        canRedo = !undoHistory->isEmpty(); // If redo stack is empty set canRedo to false.
+        redoMakeMove(undoHistory.pop());  // Call redo move function with last undo move.
+        canRedo = !undoHistory.isEmpty(); // If redo stack is empty set canRedo to false.
     }
     else
     {

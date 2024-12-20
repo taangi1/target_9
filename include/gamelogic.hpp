@@ -31,6 +31,7 @@ public:
         int row;
         int col;
     };
+
     /**
      * @brief Constructor for the class. Initializes board to default board size (3x3).
      */
@@ -148,8 +149,8 @@ private:
      */
     void redoMakeMove(Move move);
 
-    Stack<Move> *historyMoves; // Undo stack
-    Stack<Move> *undoHistory;  // Redo stack
+    Stack<Move> historyMoves; // Undo stack
+    Stack<Move> undoHistory;  // Redo stack
 };
 
 #endif // GAMELOGIC_HPP

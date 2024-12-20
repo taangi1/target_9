@@ -14,7 +14,6 @@
 #include "mainwindow.hpp"
 
 #include <QApplication>
-#include <QDebug>
 
 /**
  * @brief The main entry point of the target 9 game
